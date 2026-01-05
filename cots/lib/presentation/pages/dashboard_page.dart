@@ -4,7 +4,6 @@ import '../../models/task.dart';
 import '../../design_system/app_color.dart';
 import '../../design_system/app_spacing.dart';
 import '../../design_system/app_typography.dart';
-import '../widgets/status_chip.dart';
 import 'task_page.dart';
 import 'task_detail.dart';
 import 'task_add.dart';
@@ -47,7 +46,21 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget statusBadge(String status) {
-    return StatusChip(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: statusColor(status).withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status == 'SELESAI' ? 'Selesai' : 'Berjalan',
+        style: TextStyle(
+          fontSize: 12,
+          color: statusColor(status),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 
   @override
@@ -177,13 +190,23 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 if (task.isOverdue) ...[
                                   const SizedBox(width: AppSpacing.xs),
-                                  StatusChip('TERLAMBAT'),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.lateBg,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'Terlambat',
+                                      style: AppTypography.caption.copyWith(color: AppColors.danger),
+                                    ),
+                                  ),
                                 ]
                               ],
                             ),
                           ],
                         ),
-                        trailing: statusBadge(task.effectiveStatus),
+                        trailing: statusBadge(task.status),
                         onTap: () async {
                           await Navigator.push(
                             context,

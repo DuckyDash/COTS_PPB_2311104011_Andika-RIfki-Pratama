@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../design_system/app_color.dart';
-import '../../design_system/app_typography.dart';
 
 class StatusChip extends StatelessWidget {
   final String status;
@@ -16,8 +15,7 @@ class StatusChip extends StatelessWidget {
       bg = AppColors.lateBg;
       fg = AppColors.danger;
     } else {
-      // avoid deprecated withOpacity; use withAlpha (~0.12 * 255 = 31)
-      bg = AppColors.primary.withAlpha(31);
+      bg = AppColors.primary.withOpacity(.12);
       fg = AppColors.primary;
     }
     return Container(
@@ -26,10 +24,7 @@ class StatusChip extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        status == 'SELESAI' ? 'Selesai' : status == 'TERLAMBAT' ? 'Terlambat' : 'Berjalan',
-        style: AppTypography.caption.copyWith(color: fg, fontWeight: FontWeight.w600),
-      ),
+      child: Text(status, style: TextStyle(color: fg, fontSize: 12)),
     );
   }
-} 
+}

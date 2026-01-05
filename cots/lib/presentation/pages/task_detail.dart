@@ -4,7 +4,6 @@ import '../../models/task.dart';
 import '../../design_system/app_color.dart';
 import '../../design_system/app_spacing.dart';
 import '../../design_system/app_typography.dart';
-import '../widgets/status_chip.dart';
 import 'task_add.dart';
 
 class TaskDetailPage extends StatefulWidget {
@@ -40,7 +39,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   Widget statusBadge(String status) {
-    return StatusChip(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: statusColor(status).withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status == 'SELESAI' ? 'Selesai' : status == 'TERLAMBAT' ? 'Terlambat' : 'Berjalan',
+        style: AppTypography.caption.copyWith(
+          color: statusColor(status),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 
   Future<void> toggleDone(bool value) async {
@@ -119,7 +131,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           children: [
             /// DETAIL CARD
             Card(
-              color: AppColors.surface,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -162,7 +174,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         ),
                         if (currentTask.isOverdue) ...[
                           const SizedBox(width: AppSpacing.xs),
-                          StatusChip('TERLAMBAT'),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.lateBg,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text('Terlambat', style: AppTypography.caption.copyWith(color: AppColors.danger)),
+                          ),
                         ]
                       ],
                     ),
@@ -184,7 +203,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
             /// CHECKBOX
             Card(
-                color: AppColors.surface,
+                color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -208,7 +227,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
             /// CATATAN (VIEW ONLY)
             Card(
-                color: AppColors.surface,
+                color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

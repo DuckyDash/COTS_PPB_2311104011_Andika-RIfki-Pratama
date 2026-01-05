@@ -4,7 +4,6 @@ import '../../models/task.dart';
 import '../../design_system/app_color.dart';
 import '../../design_system/app_spacing.dart';
 import '../../design_system/app_typography.dart';
-import '../widgets/status_chip.dart';
 import 'task_detail.dart';
 import 'task_add.dart';
 
@@ -187,7 +186,7 @@ class _TaskListPageState extends State<TaskListPage> {
                                   style: AppTypography.caption,
                                 ),
                                 if (task.isOverdue)
-                                  StatusChip('TERLAMBAT'),
+                                  Text('Terlambat', style: AppTypography.caption.copyWith(color: AppColors.danger)),
                               ],
                             ),
                             onTap: () async {
