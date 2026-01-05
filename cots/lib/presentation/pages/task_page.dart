@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../controllers/task_controller.dart';
 import '../../models/task.dart';
+import '../../design_system/app_color.dart';
+import '../../design_system/app_spacing.dart';
+import '../../design_system/app_typography.dart';
+import '../widgets/status_chip.dart';
 import 'task_detail.dart';
 import 'task_add.dart';
 
@@ -38,7 +42,7 @@ class _TaskListPageState extends State<TaskListPage> {
 
     // Filter status
     if (selectedFilter != 'SEMUA') {
-      temp = temp.where((t) => t.status == selectedFilter).toList();
+      temp = temp.where((t) => t.effectiveStatus == selectedFilter).toList();
     }
 
     // Search
@@ -58,11 +62,11 @@ class _TaskListPageState extends State<TaskListPage> {
   Color dotColor(String status) {
     switch (status) {
       case 'SELESAI':
-        return Colors.green;
+        return AppColors.successText;
       case 'TERLAMBAT':
-        return Colors.red;
+        return AppColors.danger;
       default:
-        return Colors.blue;
+        return AppColors.primary;
     }
   }
 
@@ -77,19 +81,19 @@ class _TaskListPageState extends State<TaskListPage> {
           applyFilter();
         });
       },
-      selectedColor: Colors.blue,
-      labelStyle: TextStyle(color: active ? Colors.white : Colors.black),
+      selectedColor: AppColors.primary,
+      labelStyle: active ? AppTypography.button : AppTypography.body,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Daftar Tugas'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Daftar Tugas', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.text,
         elevation: 0,
         actions: [
           TextButton.icon(
@@ -100,13 +104,13 @@ class _TaskListPageState extends State<TaskListPage> {
               );
               loadData();
             },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Tambah'),
+            icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+            label: Text('Tambah', style: AppTypography.section.copyWith(color: AppColors.primary)),
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
             /// SEARCH
@@ -121,7 +125,7 @@ class _TaskListPageState extends State<TaskListPage> {
                 hintText: 'Cari tugas atau mata kuliah...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: AppColors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -129,7 +133,7 @@ class _TaskListPageState extends State<TaskListPage> {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
 
             /// FILTER
             SingleChildScrollView(
@@ -137,11 +141,11 @@ class _TaskListPageState extends State<TaskListPage> {
               child: Row(
                 children: [
                   filterChip('Semua', 'SEMUA'),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   filterChip('Berjalan', 'BERJALAN'),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   filterChip('Selesai', 'SELESAI'),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   filterChip('Terlambat', 'TERLAMBAT'),
                 ],
               ),
@@ -158,26 +162,33 @@ class _TaskListPageState extends State<TaskListPage> {
                       itemBuilder: (_, i) {
                         final task = filteredTasks[i];
                         return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          color: AppColors.surface,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
+                            contentPadding: const EdgeInsets.all(AppSpacing.md),
                             leading: CircleAvatar(
                               radius: 6,
-                              backgroundColor: dotColor(task.status),
+                              backgroundColor: dotColor(task.effectiveStatus),
                             ),
                             title: Text(
                               task.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: AppTypography.section,
                             ),
-                            subtitle: Text(task.course),
-                            trailing: Text(
-                              '${task.deadline.day.toString().padLeft(2, '0')}-${task.deadline.month.toString().padLeft(2, '0')}-${task.deadline.year}',
-                              style: const TextStyle(fontSize: 12),
+                            subtitle: Text(task.course, style: AppTypography.body),
+                            trailing: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${task.deadline.day.toString().padLeft(2, '0')}-${task.deadline.month.toString().padLeft(2, '0')}-${task.deadline.year}',
+                                  style: AppTypography.caption,
+                                ),
+                                if (task.isOverdue)
+                                  StatusChip('TERLAMBAT'),
+                              ],
                             ),
                             onTap: () async {
                               await Navigator.push(

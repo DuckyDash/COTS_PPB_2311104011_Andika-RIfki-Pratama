@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../controllers/task_controller.dart';
 import '../../models/task.dart';
+import '../../design_system/app_color.dart';
+import '../../design_system/app_spacing.dart';
+import '../../design_system/app_typography.dart';
+import '../widgets/status_chip.dart';
 import 'task_add.dart';
 
 class TaskDetailPage extends StatefulWidget {
@@ -27,34 +31,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Color statusColor(String status) {
     switch (status) {
       case 'SELESAI':
-        return Colors.green;
+        return AppColors.successText;
       case 'TERLAMBAT':
-        return Colors.red;
+        return AppColors.danger;
       default:
-        return Colors.blue;
+        return AppColors.primary;
     }
   }
 
   Widget statusBadge(String status) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: statusColor(status).withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status == 'SELESAI'
-            ? 'Selesai'
-            : status == 'TERLAMBAT'
-            ? 'Terlambat'
-            : 'Berjalan',
-        style: TextStyle(
-          color: statusColor(status),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return StatusChip(status);
   }
 
   Future<void> toggleDone(bool value) async {
@@ -107,11 +93,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Detail Tugas'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Detail Tugas', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.text,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -128,62 +114,67 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
             /// DETAIL CARD
             Card(
+              color: AppColors.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Judul Tugas',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: AppTypography.caption,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       currentTask.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTypography.section,
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
 
                     const Text(
                       'Mata Kuliah',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: AppTypography.caption,
                     ),
-                    const SizedBox(height: 4),
-                    Text(currentTask.course),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(currentTask.course, style: AppTypography.body),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
 
                     const Text(
                       'Deadline',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: AppTypography.caption,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${currentTask.deadline.day.toString().padLeft(2, '0')}-"
-                      "${currentTask.deadline.month.toString().padLeft(2, '0')}-"
-                      "${currentTask.deadline.year}",
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        Text(
+                          "${currentTask.deadline.day.toString().padLeft(2, '0')}-${currentTask.deadline.month.toString().padLeft(2, '0')}-${currentTask.deadline.year}",
+                          style: AppTypography.body,
+                        ),
+                        if (currentTask.isOverdue) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          StatusChip('TERLAMBAT'),
+                        ]
+                      ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
 
                     const Text(
                       'Status',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: AppTypography.caption,
                     ),
-                    const SizedBox(height: 6),
-                    statusBadge(currentTask.status),
+                    const SizedBox(height: AppSpacing.sm),
+                    statusBadge(currentTask.effectiveStatus),
                   ],
                 ),
               ),
@@ -191,20 +182,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
             const SizedBox(height: 16),
 
-            /// CHECKBOX (TIDAK DIUBAH SESUAI MAU KAMU)
+            /// CHECKBOX
             Card(
+                color: AppColors.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: CheckboxListTile(
-                value: isDone,
-                onChanged: (v) => toggleDone(v!),
-                title: const Text('Tugas sudah selesai'),
-                subtitle: const Text(
-                  'Centang jika tugas sudah final.',
-                  style: TextStyle(fontSize: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: CheckboxListTile(
+                  value: isDone,
+                  onChanged: (v) => toggleDone(v!),
+                  title: const Text('Tugas sudah selesai', style: AppTypography.section),
+                  subtitle: const Text(
+                    'Centang jika tugas sudah final.',
+                    style: AppTypography.caption,
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
                 ),
-                controlAffinity: ListTileControlAffinity.leading,
               ),
             ),
 
@@ -212,26 +208,27 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
             /// CATATAN (VIEW ONLY)
             Card(
+                color: AppColors.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Catatan',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: AppTypography.section,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     TextField(
                       controller: noteController,
                       maxLines: 3,
                       readOnly: true,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.background,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

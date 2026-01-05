@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../controllers/task_controller.dart';
 import '../../models/task.dart';
+import '../../design_system/app_color.dart';
+import '../../design_system/app_spacing.dart';
+import '../../design_system/app_typography.dart';
+import '../widgets/status_chip.dart';
 import 'task_page.dart';
 import 'task_detail.dart';
 import 'task_add.dart';
@@ -35,38 +39,24 @@ class _DashboardPageState extends State<DashboardPage> {
   Color statusColor(String status) {
     switch (status) {
       case 'SELESAI':
-        return Colors.green;
+        return AppColors.successText;
       case 'BERJALAN':
       default:
-        return Colors.blue;
+        return AppColors.primary;
     }
   }
 
   Widget statusBadge(String status) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: statusColor(status).withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status == 'SELESAI' ? 'Selesai' : 'Berjalan',
-        style: TextStyle(
-          fontSize: 12,
-          color: statusColor(status),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return StatusChip(status);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -76,7 +66,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   const Text(
                     'Tugas Besar',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: AppTypography.title,
                   ),
                   GestureDetector(
                     onTap: () {
@@ -85,12 +75,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         MaterialPageRoute(builder: (_) => const TaskListPage()),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Daftar Tugas',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.section.copyWith(color: AppColors.primary),
                     ),
                   ),
                 ],
@@ -103,47 +90,43 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Expanded(
                     child: Card(
+                      color: AppColors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Total Tugas'),
-                            const SizedBox(height: 8),
+                            const Text('Total Tugas', style: AppTypography.caption),
+                            const SizedBox(height: AppSpacing.sm),
                             Text(
                               '$total',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTypography.title.copyWith(fontSize: 24),
                             ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Card(
+                      color: AppColors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Selesai'),
-                            const SizedBox(height: 8),
+                            const Text('Selesai', style: AppTypography.caption),
+                            const SizedBox(height: AppSpacing.sm),
                             Text(
                               '$selesai',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTypography.title.copyWith(fontSize: 24),
                             ),
                           ],
                         ),
@@ -153,15 +136,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               /// NEAREST TASK
               const Text(
                 'Tugas Terdekat',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: AppTypography.section,
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
 
               Expanded(
                 child: ListView.builder(
@@ -169,29 +152,38 @@ class _DashboardPageState extends State<DashboardPage> {
                   itemBuilder: (_, i) {
                     final task = tasks[i];
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                      color: AppColors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                         title: Text(
                           task.title,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: AppTypography.section,
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 4),
-                            Text(task.course),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Deadline: ${task.deadline}',
-                              style: const TextStyle(fontSize: 12),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(task.course, style: AppTypography.body),
+                            const SizedBox(height: AppSpacing.xs),
+                            Row(
+                              children: [
+                                Text(
+                                  'Deadline: ${task.deadline.toIso8601String().split('T').first}',
+                                  style: AppTypography.caption,
+                                ),
+                                if (task.isOverdue) ...[
+                                  const SizedBox(width: AppSpacing.xs),
+                                  StatusChip('TERLAMBAT'),
+                                ]
+                              ],
                             ),
                           ],
                         ),
-                        trailing: statusBadge(task.status),
+                        trailing: statusBadge(task.effectiveStatus),
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -212,10 +204,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    backgroundColor: AppColors.primary,
                   ),
                   onPressed: () async {
                     await Navigator.push(
@@ -224,9 +217,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                     loadData();
                   },
-                  child: const Text(
+                  child: Text(
                     'Tambah Tugas',
-                    style: TextStyle(fontSize: 16),
+                    style: AppTypography.button.copyWith(fontSize: 16),
                   ),
                 ),
               ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../controllers/task_controller.dart';
 import '../../models/task.dart';
+import '../../design_system/app_color.dart';
+import '../../design_system/app_spacing.dart';
+import '../../design_system/app_typography.dart';
 
 class TaskAddPage extends StatefulWidget {
-  final Task? task;
+  final Task? task; // null = add, ada = edit
   const TaskAddPage({super.key, this.task});
 
   @override
@@ -14,21 +17,35 @@ class _TaskAddPageState extends State<TaskAddPage> {
   final _formKey = GlobalKey<FormState>();
 
   final titleController = TextEditingController();
-  final courseController = TextEditingController();
   final deadlineController = TextEditingController();
   final noteController = TextEditingController();
 
-  // Course list and selection (replace with dynamic source if needed)
   final List<String> courses = [
     'Pemodelan Perangkat Bergerak',
+    'Pemrograman Mobile',
     'Matematika',
     'Fisika',
-    'Pemrograman Mobile',
   ];
   String? selectedCourse;
 
   bool isDone = false;
   bool isSubmitting = false;
+
+  bool get isEditing => widget.task != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      final t = widget.task!;
+      titleController.text = t.title;
+      selectedCourse = t.course;
+      deadlineController.text =
+          "${t.deadline.year}-${t.deadline.month.toString().padLeft(2, '0')}-${t.deadline.day.toString().padLeft(2, '0')}";
+      noteController.text = t.note ?? '';
+      isDone = t.isDone;
+    }
+  }
 
   Future<void> pickDate() async {
     final picked = await showDatePicker(
@@ -48,72 +65,33 @@ class _TaskAddPageState extends State<TaskAddPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isSubmitting = true);
-    try {
-      final title = titleController.text.trim();
-      final course = (selectedCourse ?? courseController.text).trim();
-      final deadline = deadlineController.text.trim();
-      final note = noteController.text.trim();
 
-      if (isEditing) {
-        await TaskController.updateTask(
-          id: widget.task!.id,
-          title: title,
-          course: course,
-          deadline: deadline,
-          note: note,
-          isDone: isDone,
-        );
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perubahan berhasil disimpan')),
-        );
-        Navigator.pop(context, true);
-      } else {
-        await TaskController.createTask(
-          title: title,
-          course: course,
-          deadline: deadline,
-          note: note,
-          isDone: isDone,
-        );
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tugas berhasil ditambahkan')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan tugas: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => isSubmitting = false);
-    }
-  }
-
-  bool get isEditing => widget.task != null;
-
-  @override
-  void initState() {
-    super.initState();
     if (isEditing) {
-      final t = widget.task!;
-      titleController.text = t.title;
-      courseController.text = t.course;
-      deadlineController.text = t.deadline.toIso8601String().split('T').first;
-      noteController.text = t.note ?? '';
-      selectedCourse = t.course;
-      isDone = t.isDone;
+      await TaskController.updateTask(
+        id: widget.task!.id,
+        title: titleController.text.trim(),
+        course: selectedCourse!,
+        deadline: deadlineController.text,
+        note: noteController.text.trim(),
+        isDone: isDone,
+      );
+    } else {
+      await TaskController.createTask(
+        title: titleController.text.trim(),
+        course: selectedCourse!,
+        deadline: deadlineController.text,
+        note: noteController.text.trim(),
+        isDone: isDone,
+      );
     }
+
+    if (!mounted) return;
+    Navigator.pop(context, true); // 🔑 KUNCI
   }
 
   @override
   void dispose() {
     titleController.dispose();
-    courseController.dispose();
     deadlineController.dispose();
     noteController.dispose();
     super.dispose();
@@ -122,188 +100,118 @@ class _TaskAddPageState extends State<TaskAddPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Tugas' : 'Tambah Tugas'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(isEditing ? 'Edit Tugas' : 'Tambah Tugas', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.text,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.of(context).viewInsets.bottom + 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                /// CARD FORM
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// JUDUL TUGAS
-                        const Text(
-                          'Judul Tugas',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Judul Tugas'),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: titleController,
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Wajib diisi' : null,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: titleController,
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan judul tugas',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          validator: (v) => v == null || v.isEmpty
-                              ? 'Judul tugas wajib diisi'
-                              : null,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      const Text('Mata Kuliah'),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedCourse,
+                        items: courses
+                            .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)),
+                            )
+                            .toList(),
+                        onChanged: (v) => setState(() => selectedCourse = v),
+                        validator: (v) =>
+                            v == null ? 'Wajib pilih mata kuliah' : null,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
+                      ),
 
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        /// MATA KULIAH
-                        DropdownButtonFormField<String>(
-                            value: selectedCourse,
-                            items: courses.map((course) {
-                              return DropdownMenuItem(
-                                value: course,
-                                child: Text(course),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedCourse = value;
-                                courseController.text = value ?? '';
-                              });
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Pilih mata kuliah',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            validator: (value) => value == null
-                                ? 'Mata kuliah wajib diisi'
-                                : null,
-                          ),
-
-
-                        const SizedBox(height: 16),
-
-                        /// DEADLINE
-                        const Text(
-                          'Deadline',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                      const Text('Deadline'),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: deadlineController,
+                        readOnly: true,
+                        onTap: pickDate,
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Wajib diisi' : null,
+                        decoration: const InputDecoration(
+                          suffixIcon: Icon(Icons.calendar_today),
+                          border: OutlineInputBorder(),
                         ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: deadlineController,
-                          readOnly: true,
-                          onTap: pickDate,
-                          decoration: InputDecoration(
-                            hintText: 'Pilih tanggal',
-                            suffixIcon: const Icon(Icons.calendar_today),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          validator: (v) => v == null || v.isEmpty
-                              ? 'Deadline wajib diisi'
-                              : null,
-                        ),
+                      ),
 
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        /// CHECKBOX SELESAI
-                        CheckboxListTile(
-                          value: isDone,
-                          onChanged: (v) => setState(() => isDone = v!),
-                          title: const Text('Tugas sudah selesai'),
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                      CheckboxListTile(
+                        value: isDone,
+                        onChanged: (v) => setState(() => isDone = v!),
+                        title: const Text('Tugas sudah selesai'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
 
-                        const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                        /// CATATAN
-                        const Text(
-                          'Catatan',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                      const Text('Catatan'),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: noteController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: noteController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'Catatan tambahan (opsional)',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-                /// BUTTONS
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text('Batal'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: isSubmitting ? null : submit,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: isSubmitting
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(isEditing ? 'Simpan Perubahan' : 'Simpan'),
-                      ),
-                    ),
-                  ],
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSubmitting ? null : submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text(isEditing ? 'Simpan Perubahan' : 'Simpan', style: AppTypography.button),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    ));
+    );
   }
 }

@@ -35,4 +35,11 @@ class Task {
     'note': note,
     'is_done': isDone,
   };
+
+  bool get isOverdue {
+    final now = DateTime.now();
+    return !isDone && deadline.isBefore(DateTime(now.year, now.month, now.day + 1));
+  }
+
+  String get effectiveStatus => isOverdue ? 'TERLAMBAT' : status;
 }
